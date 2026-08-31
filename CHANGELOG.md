@@ -1,3 +1,10 @@
+# [1.45.0](https://github.com/opendatahub-io/agent-eval-harness/compare/v1.44.0...v1.45.0) (2026-08-31)
+
+
+### Features
+
+* **judges:** binary-first judge authoring guidance and prompt template ([6c0a22b](https://github.com/opendatahub-io/agent-eval-harness/commit/6c0a22b351be5c9b081456b7609e2090695e3b71))
+
 # [1.44.0](https://github.com/opendatahub-io/agent-eval-harness/compare/v1.43.2...v1.44.0) (2026-08-31)
 
 
