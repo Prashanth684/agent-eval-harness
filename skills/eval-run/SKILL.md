@@ -24,7 +24,7 @@ Parse `$ARGUMENTS`:
 | `--baseline <run-id>` | no | — | Previous run to compare against |
 | `--no-llm-judges` | no | false | Skip LLM judges (prompt, prompt_file, LLM builtins, agent). Run deterministic judges (check, Python builtins, external code). |
 | `--gold` | no | false | Save outputs as gold references after run |
-| `--effort <level>` | no | `runner.effort` from config | Agent reasoning effort level; the accepted values depend on the selected runner (`claude-code`, `cursor`, `codex`) — see the runner reference |
+| `--effort <level>` | no | `runner.effort` from config | Agent reasoning effort; accepted values are runner-specific |
 | `--runner <type>` | no | local | `local` (default Steps 1–8) or `harbor` (containerized — skips to Harbor runner section) |
 | `--env <name>` | no | `kubernetes` | Harbor execution environment: `podman`, `kubernetes`, `openshift` (only with `--runner harbor`) |
 | `--mount <source:target[:ro or rw]>` | no | — | Repeatable Podman bind mount; defaults to read-only (only with `--runner harbor`) |
@@ -58,7 +58,7 @@ test -f <config> && echo "CONFIG_EXISTS" || echo "NO_CONFIG"
 
 Once config exists, read it to understand the eval setup — the skill under test, runner, dataset, outputs, judges, models, and any tool interception. The downstream scripts read the same config; you don't need to pass these fields through, just confirm they're present and warn the user about anything missing or surprising.
 
-`inputs.tools` is a Claude Code feature; the codex and cursor runners reject it at config load. For a **claude-code** runner, if `inputs.tools` has entries but the skill uses AskUserQuestion or external APIs, verify the handlers cover those tools. Warn the user if a tool the skill uses isn't intercepted — headless execution may hang.
+`inputs.tools` is claude-code-only (codex/cursor reject it at load). For claude-code, if it has entries but the skill uses AskUserQuestion or external APIs, verify the handlers cover those tools — an unintercepted tool can hang headless execution.
 
 Persist parsed flags:
 

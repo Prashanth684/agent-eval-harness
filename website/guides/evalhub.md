@@ -18,7 +18,7 @@ EvalHub's architecture expects adapter pods to be **execution-only**: they don't
 spawn sub-pods or call out to a container orchestrator. The
 `AgentEvalAdapter.run_benchmark_job` method therefore drives the full loop itself
 using the runner named by `runner.type` in `eval.yaml` (`claude-code`, `codex`,
-`cli`, `responses-api` — not `cursor`) — the exact same `ClaudeCodeRunner` used
+`cli`, `responses-api` — not `cursor`) — the same in-process runner flow used
 locally. Concurrency
 comes from `execution.parallelism`, in-process, within the one pod.
 

@@ -57,9 +57,12 @@ Bedrock).
 | `CURSOR_AGENT_BIN` | Path to the `cursor-agent` executable (alternative to `runner.settings.binary`). |
 
 !!! warning "At least one auth path is required"
-    `/eval-setup` passes preflight only when `ANTHROPIC_API_KEY` **or**
-    `ANTHROPIC_VERTEX_PROJECT_ID` is set. With neither, the runner and all LLM
-    judges fail.
+    `/eval-setup` preflight checks for `ANTHROPIC_API_KEY` **or**
+    `ANTHROPIC_VERTEX_PROJECT_ID` — the credentials the Claude Code runner and
+    Anthropic LLM judges need. A `runner.type: cursor` setup authenticates via
+    `CURSOR_API_KEY` instead and does not need an Anthropic key for the *runner*,
+    but preflight still flags its absence (and Anthropic/OpenAI creds are still
+    required by any Anthropic/OpenAI LLM judge).
 
 !!! note "AWS Bedrock"
     The Harbor Podman backend also forwards `CLAUDE_CODE_USE_BEDROCK`, `AWS_REGION`,
