@@ -58,7 +58,7 @@ test -f <config> && echo "CONFIG_EXISTS" || echo "NO_CONFIG"
 
 Once config exists, read it to understand the eval setup — the skill under test, runner, dataset, outputs, judges, models, and any tool interception. The downstream scripts read the same config; you don't need to pass these fields through, just confirm they're present and warn the user about anything missing or surprising.
 
-If `inputs.tools` has entries but the skill uses AskUserQuestion or external APIs, verify the handlers cover those tools. Warn the user if a tool the skill uses isn't intercepted — headless execution may hang.
+`inputs.tools` is a Claude Code feature; the codex and cursor runners reject it at config load. For a **claude-code** runner, if `inputs.tools` has entries but the skill uses AskUserQuestion or external APIs, verify the handlers cover those tools. Warn the user if a tool the skill uses isn't intercepted — headless execution may hang.
 
 Persist parsed flags:
 

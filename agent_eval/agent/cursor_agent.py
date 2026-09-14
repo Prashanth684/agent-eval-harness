@@ -788,11 +788,23 @@ class CursorAgentRunner(EvalRunner):
                     if namespaces is None or requested_namespace not in namespaces:
                         continue
                 skill_path = root / skill_name / "SKILL.md"
-                if skill_path.is_file():
-                    try:
-                        return skill_path.read_text(encoding="utf-8")
-                    except (OSError, UnicodeDecodeError):
-                        continue
+                if not skill_path.is_file():
+                    continue
+                # Resolve and confine to the root before reading: a repo could
+                # plant a `skills/<name>/SKILL.md` symlink — or a `..`-laden
+                # skill name — pointing at a host file, which `_build_prompt`
+                # would then embed in the agent/judge prompt (CWE-59 / CWE-22).
+                try:
+                    resolved = skill_path.resolve(strict=True)
+                except OSError:
+                    continue
+                root_resolved = root.resolve()
+                if resolved != root_resolved and root_resolved not in resolved.parents:
+                    continue
+                try:
+                    return resolved.read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError):
+                    continue
         return ""
 
     def _staged_plugin_dirs(self, workspace: Path) -> list[str]:

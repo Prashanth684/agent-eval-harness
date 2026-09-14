@@ -257,6 +257,31 @@ def test_cursor_namespaced_plugin_skill_lookup(tmp_path, monkeypatch):
     ) == "namespaced instructions"
 
 
+def test_cursor_find_skill_text_rejects_symlinked_skill_file(tmp_path, monkeypatch):
+    """A workspace SKILL.md symlink pointing outside its root is not read into
+    the prompt (CWE-59)."""
+    secret = tmp_path / "secret.txt"
+    secret.write_text("HOST SECRET")
+    workspace = tmp_path / "ws"
+    skill = workspace / "skills" / "demo"
+    skill.mkdir(parents=True)
+    (skill / "SKILL.md").symlink_to(secret)
+
+    runner = _runner(monkeypatch)
+    assert runner._find_skill_text("demo", workspace, []) == ""
+
+
+def test_cursor_find_skill_text_reads_regular_skill_file(tmp_path, monkeypatch):
+    """A regular (non-symlink) workspace SKILL.md is still read."""
+    workspace = tmp_path / "ws"
+    skill = workspace / "skills" / "demo"
+    skill.mkdir(parents=True)
+    (skill / "SKILL.md").write_text("real instructions")
+
+    runner = _runner(monkeypatch)
+    assert runner._find_skill_text("demo", workspace, []) == "real instructions"
+
+
 def test_cursor_environment_matches_cli_runner_baseline(monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", "do-not-forward")
     monkeypatch.setenv("CURSOR_API_KEY", "cursor-key")
