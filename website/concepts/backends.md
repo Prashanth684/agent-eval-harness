@@ -11,6 +11,11 @@ Harbor, and EvalHub — because the execution substrate is never a config key.
     EvalHub at invocation time with `--runner` — or, for EvalHub, via a
     platform-triggered job (see [EvalHub](../guides/evalhub.md)).
 
+    One exception: **`runner.type: cursor` is local-only.** The Harbor and
+    EvalHub base image ships no `cursor-agent` CLI, so Harbor has no cursor agent
+    and EvalHub rejects the config at load. Use `claude-code` or `codex` on those
+    backends.
+
 ## The three backends
 
 | Backend | Where cases run | Judging | Invocation |
@@ -36,7 +41,8 @@ flowchart TD
     This name is genuinely confusing. There are two distinct concepts:
 
     - **`runner.type`** *(in `eval.yaml`)* — the **agent runtime**: `claude-code`,
-      `cli`, or `responses-api`. See [Runners](runners.md).
+      `cursor` (local backend only), `codex`, `cli`, or `responses-api`. See
+      [Runners](runners.md).
     - **`--runner`** *(CLI flag on `/eval-run`)* — the **execution backend**:
       `local` (default), `harbor`, or `evalhub`.
 
@@ -135,7 +141,7 @@ regardless of backend. What differs is only *where* the judge engine runs.
 
 ## Related
 
-- [Runners](runners.md) — the `runner.type` agent runtimes (`claude-code`, `cli`, `responses-api`)
+- [Runners](runners.md) — the `runner.type` agent runtimes (`claude-code`, `cursor`, `codex`, `cli`, `responses-api`)
 - [Architecture](architecture.md) — how the pieces fit together
 - [Container images](../reference/container-images.md) — the base and provider images
 - [Judges](judges.md) — the judge engine that stays portable across backends

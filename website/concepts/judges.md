@@ -17,7 +17,7 @@ than one could apply, the harness resolves in this priority order (see
 | 1 | **builtin** | `builtin` | Registered judge from `agent_eval/judges/` | Python judge: whatever it returns · LLM judge (`.md`): boolean |
 | 2 | **inline check** | `check` | A Python snippet, in-process | `(bool \| number, rationale)` |
 | 3 | **agent** | `agent` (+ `prompt` / `prompt_file` / `llm_rubric`) | An agent run through the runner abstraction (reads a staged workspace) | numeric or boolean via `output/score.json` |
-| 4 | **LLM** | `prompt` / `prompt_file` / `llm_rubric` | An Anthropic model call | numeric on `score_range` (told `1–5` when undeclared) or boolean |
+| 4 | **LLM** | `prompt` / `prompt_file` / `llm_rubric` | An Anthropic SDK call, MLflow `make_judge`, or the configured runner (chosen by model + creds) | numeric on `score_range` (told `1–5` when undeclared) or boolean |
 | 5 | **external code** | `module` + `function` | An imported Python callable | whatever it returns |
 
 !!! warning "`builtin` is mutually exclusive"

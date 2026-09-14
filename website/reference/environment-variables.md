@@ -52,6 +52,9 @@ Bedrock).
 | `OPENAI_API_KEY` (and other `OPENAI_*`) | OpenAI credentials for `runner.type: codex`; forwarded to the `codex exec` subprocess and into Harbor containers running the Codex agent. |
 | `CODEX_HOME` | Codex CLI state directory, forwarded when set. |
 | `CODEX_API_KEY` | Alternative Codex credential, forwarded when set. |
+| `CURSOR_API_KEY` | Cursor Agent credential for `runner.type: cursor`; forwarded into the `cursor-agent` subprocess (also settable via `runner.env`). |
+| `CURSOR_API_ENDPOINT` | Overrides the Cursor API endpoint for `runner.type: cursor`. |
+| `CURSOR_AGENT_BIN` | Path to the `cursor-agent` executable (alternative to `runner.settings.binary`). |
 
 !!! warning "At least one auth path is required"
     `/eval-setup` passes preflight only when `ANTHROPIC_API_KEY` **or**
@@ -88,9 +91,10 @@ General harness knobs, read by the skills and runner directly.
 | `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` | `600000` | How long the Claude Code CLI waits for background tasks that outlive the final turn before terminating them (`0` = wait indefinitely). Tasks killed at this ceiling fail the case (exit 1) since their artifacts may be half-written — raise it for long-running pipeline skills, via export (on the env allowlist) or `runner.env:`. |
 
 !!! note "Workspace env allowlist"
-    The Claude Code runner does **not** forward your whole environment into an
-    eval workspace — only an allowlist (the auth, MLflow, and harness variables
-    above). To inject additional variables, use the
+    The Claude Code and Cursor runners do **not** forward your whole environment
+    into an eval workspace — only an allowlist (the auth, MLflow, and harness
+    variables above; Cursor's allowlist adds `CURSOR_API_KEY` /
+    `CURSOR_API_ENDPOINT` / `CURSOR_AGENT_BIN`). To inject additional variables, use the
     [`execution.env`](config/execution.md) block in `eval.yaml`, which supports
     `$VAR` passthrough from the caller's environment.
 

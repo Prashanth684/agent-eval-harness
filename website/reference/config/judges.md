@@ -34,7 +34,7 @@ A judge's type is inferred from which field is populated. There is no `type:` ke
 | **builtin** | `builtin:` | bool or score | reusable judge from the harness library |
 | **check** | `check:` | `(bool\|number, str)` | inline Python, in-process |
 | **agent** | `agent:` (+ `prompt`/`prompt_file`/`llm_rubric`) | bool or score | tool-using judge run through the runner abstraction against a staged workspace |
-| **LLM** | `prompt:` / `prompt_file:` / `llm_rubric:` | bool or score | Anthropic API call, or the configured runner for non-Anthropic models |
+| **LLM** | `prompt:` / `prompt_file:` / `llm_rubric:` | bool or score | Anthropic SDK, MLflow `make_judge`, or the configured runner — chosen by the judge model + credentials (see [Model resolution](#model-resolution)) |
 | **code** | `module:` + `function:` | judge's return | your Python module |
 
 !!! info "Type precedence"
@@ -166,17 +166,27 @@ per-judge model:  >  models.judge  >  EVAL_JUDGE_MODEL env var
 
 If none resolves to a non-empty value, the judge raises at run time.
 
+The resolved model then selects a **backend**:
+
+- **Anthropic SDK** — a Claude model with Anthropic credentials
+  (`ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` / Vertex).
+- **MLflow `make_judge`** — a Claude model without direct Anthropic credentials,
+  or any non-Anthropic model when `OPENAI_API_KEY` is set.
+- **The configured runner** — a runner-managed model with no external judge
+  credentials (e.g. Cursor's `gpt-5.4-medium`).
+
 ### Verdict output
 
-Plain LLM judges use a structured API response when the selected model is served
-directly by Anthropic. For non-Anthropic models, such as runner-managed Cursor
-models, the harness runs the prompt through the configured runner and requires
-stdout to contain exactly one JSON verdict object — with no preamble, Markdown,
-or trailing text — in the same `score`/`passed` shape shown above. These judges
-do not write `output/score.json`; that file contract is reserved for `agent:`
-judges, which have a writable staged output directory. If a runner still emits
-an accidental preamble, the harness retains its last-JSON fallback for
-compatibility, but the prompt contract asks the model to emit only the verdict.
+LLM judges served by the **Anthropic SDK** or **MLflow `make_judge`** use a
+structured API response. A **runner-backed** judge — a runner-managed model with
+no external judge credentials — instead runs the prompt through the configured
+runner and requires stdout to contain exactly one JSON verdict object — with no
+preamble, Markdown, or trailing text — in the same `score`/`passed` shape shown
+above. These judges do not write `output/score.json`; that file contract is
+reserved for `agent:` judges, which have a writable staged output directory. If a
+runner still emits an accidental preamble, the harness retains its last-JSON
+fallback for compatibility, but the prompt contract asks the model to emit only
+the verdict.
 
 ## Agent judges
 

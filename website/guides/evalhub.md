@@ -8,15 +8,18 @@ no sub-pods, no Harbor.
 !!! tip "Same config, different substrate"
     The execution backend is always a CLI flag (`--runner`), never a config key.
     Nothing in `eval.yaml` changes between [Local](eval-run.md),
-    [Harbor](harbor.md), and EvalHub.
+    [Harbor](harbor.md), and EvalHub — with one exception: `runner.type: cursor`
+    is rejected on EvalHub (and Harbor) because the base image ships no
+    `cursor-agent` CLI. Use `claude-code` or `codex`.
 
 ## The in-process model
 
 EvalHub's architecture expects adapter pods to be **execution-only**: they don't
 spawn sub-pods or call out to a container orchestrator. The
 `AgentEvalAdapter.run_benchmark_job` method therefore drives the full loop itself
-using the runner named by `runner.type` in `eval.yaml` (`claude-code`, `cli`,
-`responses-api`) — the exact same `ClaudeCodeRunner` used locally. Concurrency
+using the runner named by `runner.type` in `eval.yaml` (`claude-code`, `codex`,
+`cli`, `responses-api` — not `cursor`) — the exact same `ClaudeCodeRunner` used
+locally. Concurrency
 comes from `execution.parallelism`, in-process, within the one pod.
 
 ```mermaid

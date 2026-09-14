@@ -24,7 +24,11 @@ permissions:
     **existing** project `.cursor/cli.json` stays in effect. The harness does not
     disable a pre-existing config, so in `workspace_mode: repo` it is not a
     security boundary: a checked-in `.cursor/cli.json` can still grant access to
-    protected files.
+    protected files. When `permissions.allow` is set but **no** rule maps to a
+    Cursor pattern (an unmapped tool, or a path-scoped allow Cursor can't
+    express), the harness writes an empty allowlist — which Cursor reads as
+    deny-everything — and emits a `RuntimeWarning`; it never silently widens
+    access.
 
 ## Two forms
 

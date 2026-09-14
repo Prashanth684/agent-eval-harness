@@ -33,7 +33,9 @@ What's inside:
 
 - **UBI9 + Python 3.12** (`ubi9/python-312`).
 - **System deps:** `nodejs`, `npm` (for the agent CLIs), `git`, `tar`.
-- **Agent CLI:** `@anthropic-ai/claude-code` installed globally via npm.
+- **Agent CLIs:** `@anthropic-ai/claude-code` and `@openai/codex` installed globally
+  via npm. `cursor-agent` is **not** included — that is why `runner.type: cursor` is
+  local-only (unavailable on the Harbor and EvalHub backends).
 - **Python deps:** `pyyaml`, `anthropic[vertex]` (LLM judges via Vertex or the direct
   API), `jinja2`.
 - **The harness itself:** `agent_eval/`, `skills/`, and `pyproject.toml` copied to

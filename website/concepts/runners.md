@@ -179,6 +179,42 @@ allowlist of keys (`_SAFE_ENV_KEYS`): `PATH`, `HOME`, `USER`, `SHELL`, `LANG`,
     from the caller's environment (`JIRA_TOKEN: $JIRA_TOKEN`). See
     [environment variables](../reference/environment-variables.md).
 
+## `cursor`
+
+`CursorAgentRunner`
+([`cursor_agent.py`](https://github.com/opendatahub-io/agent-eval-harness/blob/main/agent_eval/agent/cursor_agent.py))
+shells out to `cursor-agent --print` using the machine's local Cursor
+login/account. It embeds the resolved `SKILL.md` in the prompt and copies plugin
+skills into the case workspace; it supports both the isolated workspace and
+`workspace_mode: repo`.
+
+```yaml title="eval.yaml"
+runner:
+  type: cursor
+  effort: high          # model-specific — appended to the model id
+  env:
+    CURSOR_API_KEY: $CURSOR_API_KEY
+```
+
+- **Local backend only.** The Harbor and EvalHub base image ships no
+  `cursor-agent` CLI, so Harbor has no cursor agent and EvalHub rejects the
+  config at load. Use `claude-code` or `codex` there.
+- **`effort` is model-specific** — appended to the model id, not the
+  `low|medium|high|xhigh|max` scale that claude-code/codex use.
+- **`inputs.tools` is rejected** at config load (like codex). `workspace_mode:
+  repo` *is* supported (unlike codex).
+- **Permissions map to a subset.** Allow/deny rules are written to a
+  project-local `.cursor/cli.json`; rules Cursor cannot express (some tools,
+  path-scoped allows) are dropped with a warning, and an allow list that maps to
+  nothing is fail-closed (deny-all, with a warning). An existing
+  `.cursor/cli.json` stays in effect, so it is **not** a security boundary in
+  `workspace_mode: repo`.
+- **`max_budget_usd` is not enforced** — the Cursor CLI has no budget flag; bound
+  spend with `execution.timeout`.
+- **Env & settings.** Provider credentials (`CURSOR_API_KEY`,
+  `CURSOR_API_ENDPOINT`) go under `runner.env`; `runner.settings` accepts only
+  `binary` (other native flags warn and are ignored).
+
 ## `codex`
 
 `CodexRunner`
