@@ -1115,7 +1115,10 @@ def extract_conversation_text(events, include_thinking=False):
             else:
                 parts.append(text)
     if saw_cursor:
-        cursor_text = cursor_result if cursor_result is not None else "".join(cursor_deltas)
+        # An empty terminal result string means "no final message" — fall back
+        # to the streamed assistant deltas rather than surfacing an empty
+        # conversation to judges.
+        cursor_text = cursor_result or "".join(cursor_deltas)
         if cursor_text:
             parts.append(cursor_text)
     rendered = "\n\n".join(parts)

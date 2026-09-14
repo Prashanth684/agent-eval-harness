@@ -1212,6 +1212,9 @@ def _call_structured_judge_via_runner(prompt, model, feedback_type, config, jc,
         model,
         timeout_s=int(config.execution.timeout
                       if config.execution.timeout is not None else 600),
+        # Enforced by runners that support a budget flag (e.g. claude-code); the
+        # Cursor CLI has no budget option, so for a Cursor-backed judge this is a
+        # best-effort ceiling only and `timeout_s` is the effective bound.
         max_budget_usd=2.0,
         permissions={"allow": ["Read", "Grep", "Glob"]},
         staged_files=staged_images,
@@ -2024,13 +2027,33 @@ Keep "rationale" to a short, specific justification.
 
 
 def _extract_agent_verdict(text):
-    """Parse the last {"score"|"passed", ...} JSON object from agent stdout.
+    """Parse a {"score"|"passed", ...} JSON verdict from agent/runner stdout.
 
     Fallback for when the agent didn't write output/score.json. Returns a dict
     or None. Generalizes architecture_agent._extract_score to score OR passed.
     """
     if not text:
         return None
+    stripped = text.strip()
+    # Strict contract first: the runner-backed LLM-judge contract asks for
+    # exactly one JSON object. Parse the whole response (and, tolerating an
+    # accidental preamble/suffix, the outermost brace span) before the legacy
+    # regex, so a valid verdict whose rationale contains braces — e.g.
+    # {"passed": true, "rationale": "Uses {} correctly."} — is not rejected.
+    candidates = [stripped]
+    lo, hi = stripped.find("{"), stripped.rfind("}")
+    if 0 <= lo < hi:
+        candidates.append(stripped[lo:hi + 1])
+    for candidate in candidates:
+        try:
+            obj = json.loads(candidate)
+        except (json.JSONDecodeError, ValueError):
+            continue
+        if isinstance(obj, dict) and ("score" in obj or "passed" in obj):
+            return obj
+    # Legacy fallback: the last brace-free {"score"|"passed": ...} object. Cannot
+    # see braces nested inside string values (handled above), but covers stdout
+    # with multiple objects or trailing non-JSON.
     for m in reversed(list(re.finditer(
             r'\{[^{}]*"(?:score|passed)"\s*:[^{}]*\}', text))):
         try:

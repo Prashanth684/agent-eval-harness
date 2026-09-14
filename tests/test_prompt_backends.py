@@ -66,7 +66,10 @@ runner:
     assert captured["workspace_mode"] is None
     assert captured["system_prompt"] == ""
     assert captured["settings"]["mode"] == "plan"
-    assert captured["settings"]["add_dirs"] == ["/outside"]
+    # add_dirs is stripped for prompt-only judge/generation calls: they grade
+    # untrusted output in an isolated workspace and must not inherit host-dir
+    # grants from the skill runner's settings.
+    assert "add_dirs" not in captured["settings"]
     assert captured["settings"]["endpoint"] == "https://cursor.example"
 
 

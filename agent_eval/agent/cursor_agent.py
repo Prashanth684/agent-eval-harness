@@ -166,25 +166,29 @@ def _parse_cursor_stream(stdout_text: str) -> CursorStreamSummary:
                 assistant_models.add(model)
         elif event_type == "result":
             result_obj = obj
-            cost = obj.get("total_cost_usd")
-            if isinstance(cost, (int, float)) and not isinstance(cost, bool):
-                cost_usd = cost
+            # Cursor's result event carries no cost field. A numeric
+            # total_cost_usd is the signal for a *Claude*-shaped result (see
+            # events._looks_like_cursor_object), so it is not read as a Cursor
+            # cost here — doing so contradicted the stream detector.
             usage = obj.get("usage")
             if isinstance(usage, dict):
                 token_usage = _cursor_usage_dict(usage)
-                model_name = resolved_model or "cursor-agent"
-                per_model_usage = {
-                    model_name: {
-                        **token_usage,
-                        "cost_usd": cost_usd,
-                    }
-                }
 
     if result_obj is not None or assistant_seen:
-        model_name = resolved_model or "cursor-agent"
+        # Key per-model usage and turns by the SAME model identity, so one run's
+        # tokens are not split from its turn count during aggregation. Prefer the
+        # assistant-message model (what per_model_turns uses); the init event's
+        # model string can differ in case/spacing (e.g. "GPT-5.4 Medium" vs
+        # "gpt-5.4-medium"). Fall back to the init model, then a constant.
+        primary_model = (next(iter(sorted(assistant_models)), None)
+                         or resolved_model or "cursor-agent")
         per_model_turns = {
-            model: 1 for model in (assistant_models or {model_name})
+            model: 1 for model in (assistant_models or {primary_model})
         }
+        if token_usage is not None:
+            per_model_usage = {
+                primary_model: {**token_usage, "cost_usd": cost_usd},
+            }
     else:
         per_model_turns = None
 
@@ -891,6 +895,17 @@ class CursorAgentRunner(EvalRunner):
 
             if allow_rules:
                 allow_patterns = _cursor_permission_patterns(allow_rules, strict=True)
+                if not allow_patterns:
+                    # A non-empty allow list that maps to zero Cursor patterns
+                    # (tools Cursor does not model, or only path-scoped rules) is
+                    # written as an empty allowlist, which Cursor reads as
+                    # deny-everything. That fail-closed behavior is intentional;
+                    # warn so it is not a silent lock-out.
+                    warnings.warn(
+                        f"Cursor permissions.allow {allow_rules} did not map to "
+                        "any Cursor permission pattern; the agent will be denied "
+                        "every capability.",
+                        RuntimeWarning, stacklevel=2)
                 permissions["allow"] = allow_patterns
                 capabilities = _cursor_allowed_capabilities(allow_patterns)
                 missing = {

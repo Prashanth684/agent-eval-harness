@@ -30,7 +30,7 @@ def _config(tmp_path, judges_yaml):
         name: t
         execution: {{mode: case, prompt: '{{{{ input.prompt }}}}'}}
         dataset: {{path: {tmp_path}/cases}}
-        models: {{judge: test-model}}
+        models: {{judge: claude-test-model}}
         outputs:
           - {{path: output, schema: result file}}
         judges:

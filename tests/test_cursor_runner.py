@@ -315,7 +315,9 @@ def test_cursor_execute_success_collects_output_and_metrics(tmp_path, monkeypatc
     assert result.token_usage == {
         "input": 10, "output": 4, "cache_read": 2, "cache_create": 1,
     }
-    assert result.per_model_usage["GPT-5.4 Medium"]["input"] == 10
+    # Per-model usage and turns key by the same (assistant) model identity, so
+    # one run's tokens are not split from its turn count during aggregation.
+    assert result.per_model_usage["gpt-5.4-medium"]["input"] == 10
     assert result.per_model_turns == {"gpt-5.4-medium": 1}
     assert captured["kwargs"]["cwd"] == str(tmp_path)
     assert captured["kwargs"]["stdin"] is subprocess.PIPE

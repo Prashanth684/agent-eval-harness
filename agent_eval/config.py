@@ -1707,18 +1707,20 @@ class EvalConfig:
             except ValueError as e:
                 raise ValueError(str(e)) from e
 
-        codex_runners = [config.runner]
-        codex_runners.extend(
+        runners = [config.runner]
+        runners.extend(
             step.runner for step in config.execution.steps if step.runner)
-        codex_runners = [runner for runner in codex_runners
-                         if runner.type == "codex"]
-        for runner in codex_runners:
-            if config.inputs.tools:
+        for runner in runners:
+            # Neither codex nor cursor supports tool interception; reject at load
+            # (same altitude as codex) rather than only at runner construction.
+            if runner.type in ("codex", "cursor") and config.inputs.tools:
                 raise ValueError(
                     f"runner.type '{runner.type}' does not support "
                     "inputs.tools interception; use claude-code or remove "
                     "the tool interceptors")
-            if runner.workspace_mode == "repo":
+            # codex additionally cannot enforce repository answer-key
+            # protections in workspace_mode: repo (cursor can).
+            if runner.type == "codex" and runner.workspace_mode == "repo":
                 raise ValueError(
                     f"runner.type '{runner.type}' does not support "
                     "workspace_mode: repo because repository answer-key "

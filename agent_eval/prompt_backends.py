@@ -19,7 +19,7 @@ from agent_eval.agent import RUNNERS
 from agent_eval.events import extract_conversation_text, parse_stream_events
 
 
-_ANTHROPIC_MODEL_ALIASES = {"opus", "sonnet", "haiku"}
+_ANTHROPIC_MODEL_ALIASES = ("opus", "sonnet", "haiku")
 
 
 def is_anthropic_model(model: Optional[str]) -> bool:
@@ -27,13 +27,16 @@ def is_anthropic_model(model: Optional[str]) -> bool:
 
     The direct Anthropic client can only serve Claude-family models.  Other model
     ids (for example Cursor's ``gpt-5.4-medium``) need to go through a runner.
+
+    Prefix-matches the aliases so versioned/bracketed ids such as ``sonnet-4-5``
+    and ``opus[1m]`` are recognized, not just the bare alias.
     """
     value = (model or "").strip().lower()
     if not value:
         return False
-    if value in _ANTHROPIC_MODEL_ALIASES:
+    if "claude" in value or value.startswith("anthropic/"):
         return True
-    return "claude" in value or value.startswith("anthropic/")
+    return value.startswith(_ANTHROPIC_MODEL_ALIASES)
 
 
 def extract_runner_text(result) -> str:
@@ -140,6 +143,11 @@ def run_prompt_via_runner(
     # which makes judges explore the workspace instead of emitting a verdict.
     cfg.runner.permission_mode = None
     cfg.runner.settings = dict(cfg.runner.settings or {})
+    # Strip `add_dirs`: a prompt-only judge/generation call grades untrusted,
+    # model-generated content in an isolated workspace and must not inherit
+    # host-directory grants from the skill's runner settings (CWE-200/829). The
+    # agent-judge path scrubs this too.
+    cfg.runner.settings.pop("add_dirs", None)
     # These are independent judge/generation invocations, not the evaluated
     # skill. Do not make Cursor reject a top-level interception configuration
     # that does not apply to this prompt-only call.

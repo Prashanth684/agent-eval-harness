@@ -182,5 +182,5 @@ def test_adapter_rejects_cursor_runner():
         with patch("agent_eval.evalhub.adapter._framework_adapter_init"):
             from agent_eval.evalhub.adapter import AgentEvalAdapter
             adapter = AgentEvalAdapter(eval_config_path=str(eval_yaml))
-            with pytest.raises(ValueError, match="does not support runner.type: cursor"):
+            with pytest.raises(ValueError, match=r"does not support runner\.type: cursor"):
                 adapter.run_benchmark_job(config, callbacks)
