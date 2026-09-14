@@ -26,7 +26,7 @@ flowchart TD
 | `type` | Runtime | Use it for |
 | --- | --- | --- |
 | `claude-code` *(default)* | Claude Code CLI in headless mode (`claude --print --output-format …`) | The primary path — full tracing, tool interception, permission enforcement, subagent capture |
-| `cursor` | Cursor Agent CLI in headless mode (`cursor-agent --print --output-format …`) | Local Cursor-account execution with Cursor-managed model access and plugin loading; not available in EvalHub |
+| `cursor` | Cursor Agent CLI in headless mode (`cursor-agent --print --output-format …`) | Local Cursor-account execution with Cursor-managed model access and plugin loading. **Local backend only** — not available in EvalHub or Harbor. The Cursor CLI has no budget flag, so `max_budget_usd` is not enforced; bound spend with `execution.timeout` |
 | `codex` | Codex CLI in non-interactive mode (`codex exec --json`) | Native Codex execution, skill staging, JSONL usage parsing, and sandbox-mode mapping |
 | `cli` | Any command you provide, via a placeholder template | Wrapping OpenCode, a custom agent, or a shell script. See the [opaque CLI runner contract](https://github.com/opendatahub-io/agent-eval-harness/blob/main/docs/opaque-cli-runner-contract.md) |
 | `responses-api` | OpenAI Responses API with the Shell tool + Skills API | Apples-to-apples comparison of the *same* skill on an OpenAI model |
@@ -245,10 +245,12 @@ runner:
 
 ### `env`
 
-`claude-code` and `codex`. Extra environment variables injected into the runner
-subprocess, **additive** to the runner's built-in safe allowlist (`PATH`, `HOME`,
+`claude-code`, `cursor`, and `codex`. Extra environment variables injected into the
+runner subprocess, **additive** to the runner's built-in safe allowlist (`PATH`, `HOME`,
 provider credentials, `MLFLOW_TRACKING_URI`, …). A value starting with `$` is resolved
-from the caller's environment; missing vars are dropped.
+from the caller's environment; missing vars are dropped. Cursor reads its provider
+credentials (e.g. `CURSOR_API_KEY`, `CURSOR_API_ENDPOINT`) from here — not from
+`execution.env`, which has a different scope.
 
 ```yaml
 runner:

@@ -7,8 +7,8 @@ process that turns a skill invocation or prompt into work. It is selected in
 runtime-agnostic.
 
 !!! important "Runner ≠ backend"
-    A **runner** is *what agent runtime* runs a case (`claude-code`, `codex`, `cli`,
-    `responses-api`) — chosen in `eval.yaml` via `runner.type`. A **backend** is
+    A **runner** is *what agent runtime* runs a case (`claude-code`, `cursor`,
+    `codex`, `cli`, `responses-api`) — chosen in `eval.yaml` via `runner.type`. A **backend** is
     *where* the eval runs (Local, [Harbor](../guides/harbor.md),
     [EvalHub](../guides/evalhub.md)) — always chosen by a **CLI flag** (`--runner`),
     never in the config. The same `eval.yaml` runs unchanged across all three

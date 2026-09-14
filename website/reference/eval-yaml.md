@@ -295,7 +295,9 @@ execution:
 
 runner:
   type: claude-code       # claude-code | cursor | codex | cli | responses-api
-  # effort: high          # low | medium | high | xhigh | max
+  # effort: high          # accepted values are runner-specific: claude-code
+  #                       # low|medium|high|xhigh|max; codex low|medium|high|xhigh;
+  #                       # cursor is model-specific
 
 models:
   skill: claude-opus-4-6  # required (or pass --model)

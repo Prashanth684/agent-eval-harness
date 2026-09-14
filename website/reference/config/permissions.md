@@ -20,7 +20,11 @@ permissions:
     broad Cursor `permissions.allow` list alongside those denies. Cursor's
     project-local `.cursor/cli.json` schema requires `allow`; omitting it makes
     the generated file invalid. If neither list is configured, the harness
-    writes no project permission file and Cursor's normal defaults apply.
+    writes no project permission file and Cursor's normal defaults apply — and an
+    **existing** project `.cursor/cli.json` stays in effect. The harness does not
+    disable a pre-existing config, so in `workspace_mode: repo` it is not a
+    security boundary: a checked-in `.cursor/cli.json` can still grant access to
+    protected files.
 
 ## Two forms
 
